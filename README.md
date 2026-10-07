@@ -4,7 +4,7 @@ Solução do **Desafio Frontend da Jungle Gaming**: o marketplace KURIO implemen
 em React + TypeScript, com backend simulado (REST + Socket.IO via MSW), testes E2E e de regressão
 visual (Playwright) e auditoria Lighthouse automatizada.
 
-- **Demo:** _adicione aqui a URL do deploy na Vercel_
+- **Demo:** [kurio-sage.vercel.app](https://kurio-sage.vercel.app/)
 - **Arquitetura e decisões:** [ARCHITECTURE.md](ARCHITECTURE.md)
 - **Resultados do Lighthouse:** [lighthouse/RESULTADOS.md](lighthouse/RESULTADOS.md)
 
@@ -30,7 +30,8 @@ visual (Playwright) e auditoria Lighthouse automatizada.
   reconciliação REST ↔ Socket por versão, atualizações otimistas com rollback, cache isolado por
   usuário (sem vazamento na troca de conta) e retomada de fluxo após expiração da sessão.
 - **Qualidade:** TypeScript estrito, ESLint (com jsx-a11y), 56 testes Playwright rodando em desktop e
-  mobile (com regressão visual) e Lighthouse com Acessibilidade, Boas práticas e SEO entre 97 e 100.
+  mobile (com regressão visual, e também contra o deploy) e Lighthouse no deploy com performance 100
+  no desktop, 86–92 no mobile e Acessibilidade, Boas práticas e SEO entre 97 e 100.
 
 ## Stack
 
@@ -165,21 +166,22 @@ Os roteiros usam a conta `ana@kurio.dev` e o NFT `/nft/emerald-ape-042`. Os coma
 
 ## Comandos
 
-| Comando                    | O que faz                                                              |
-| -------------------------- | ---------------------------------------------------------------------- |
-| `npm run dev`              | Servidor de desenvolvimento com mocks (http://localhost:5173)          |
-| `npm run build`            | Typecheck e build de produção em `dist/`                               |
-| `npm run preview`          | Serve o build (http://localhost:4173)                                  |
-| `npm run typecheck`        | `tsc -b` em todo o projeto                                             |
-| `npm run lint`             | ESLint                                                                 |
-| `npm run format`           | Prettier (`format:check` só verifica)                                  |
-| `npm run test:e2e`         | Playwright em desktop e mobile; faz o build e sobe o preview sozinho   |
-| `npm run test:e2e:desktop` | Só o projeto desktop (1440 × 900)                                      |
-| `npm run test:e2e:mobile`  | Só o projeto mobile (Pixel 7, 390 × 844)                               |
-| `npm run test:visual`      | Só a regressão visual (`test:visual:update` regenera as baselines)     |
-| `npm run test:report`      | Abre o relatório HTML do Playwright                                    |
-| `npm run lighthouse`       | Build e auditoria completa (`lighthouse:run` audita o build existente) |
-| `npm run images`           | Regenera as imagens WebP a partir das artes do Figma (`assets/nfts`)   |
+| Comando                     | O que faz                                                              |
+| --------------------------- | ---------------------------------------------------------------------- |
+| `npm run dev`               | Servidor de desenvolvimento com mocks (http://localhost:5173)          |
+| `npm run build`             | Typecheck e build de produção em `dist/`                               |
+| `npm run preview`           | Serve o build (http://localhost:4173)                                  |
+| `npm run typecheck`         | `tsc -b` em todo o projeto                                             |
+| `npm run lint`              | ESLint                                                                 |
+| `npm run format`            | Prettier (`format:check` só verifica)                                  |
+| `npm run test:e2e`          | Playwright em desktop e mobile; faz o build e sobe o preview sozinho   |
+| `npm run test:e2e:desktop`  | Só o projeto desktop (1440 × 900)                                      |
+| `npm run test:e2e:mobile`   | Só o projeto mobile (Pixel 7, 390 × 844)                               |
+| `npm run test:visual`       | Só a regressão visual (`test:visual:update` regenera as baselines)     |
+| `npm run test:report`       | Abre o relatório HTML do Playwright                                    |
+| `npm run lighthouse`        | Build e auditoria completa (`lighthouse:run` audita o build existente) |
+| `npm run lighthouse:deploy` | Auditoria do deploy na Vercel                                          |
+| `npm run images`            | Regenera as imagens WebP a partir das artes do Figma (`assets/nfts`)   |
 
 ## Testes E2E (Playwright)
 
@@ -198,6 +200,8 @@ npm run test:report               # relatório HTML com traces, vídeos e screen
 - Rodam com 4 workers locais (2 no CI), porque cada worker é um Chromium com o app e o backend
   simulado. `E2E_IN_PAGE=1 npm run test:e2e` roda a suíte inteira com o backend simulado no modo em
   página (sem Service Worker).
+- Para testar um deploy, sem subir o preview local:
+  `E2E_BASE_URL=https://kurio-sage.vercel.app npx playwright test tests/e2e`.
 - Em caso de falha ficam guardados trace, vídeo e screenshot (`test-results/`). Para abrir um trace:
   `npx playwright show-trace test-results/<teste>/trace.zip`.
 - Regressão visual: início, detalhe, carrinho e pagamento, em desktop e mobile. As baselines ficam em
@@ -223,17 +227,34 @@ npm run test:report               # relatório HTML com traces, vídeos e screen
 ## Lighthouse
 
 ```bash
-npm run lighthouse
+npm run lighthouse          # build e auditoria do build local (vite preview)
+npm run lighthouse:deploy   # auditoria do deploy na Vercel
 # Se o Chrome não for encontrado automaticamente:
 CHROME_PATH="/caminho/para/chrome" npm run lighthouse
 ```
 
-- Mede o build de produção servido por `vite preview`, com os mocks no cenário padrão, em 3 execuções
-  por página (início e detalhe) e por perfil (mobile e desktop). Cada execução usa um perfil limpo do
-  Chrome. A configuração está versionada em [`lighthouse/config.mjs`](lighthouse/config.mjs).
-- Saída em `lighthouse/reports/`: os JSON de todas as execuções, o HTML da execução mediana e o
-  `summary.json`, com versões, máquina e condições. O resumo em Markdown fica em
-  [`lighthouse/RESULTADOS.md`](lighthouse/RESULTADOS.md).
+- As duas auditorias usam a mesma configuração ([`lighthouse/config.mjs`](lighthouse/config.mjs)):
+  3 execuções por página (início e detalhe) e por perfil (mobile e desktop), com os mocks no cenário
+  padrão e um perfil limpo do Chrome a cada execução. O resumo usa a mediana.
+- **Deploy** ([`lighthouse/RESULTADOS-vercel.md`](lighthouse/RESULTADOS-vercel.md), relatórios em
+  `lighthouse/reports-vercel/`): o app como quem avalia vai acessá-lo, servido pela Vercel com HTTP/2,
+  Brotli e CDN.
+- **Build local** ([`lighthouse/RESULTADOS.md`](lighthouse/RESULTADOS.md), relatórios em
+  `lighthouse/reports/`): reproduzível em qualquer máquina, servido por `vite preview` (HTTP/1.1 com
+  gzip).
+- Cada pasta guarda os JSON de todas as execuções, o HTML da execução mediana e o `summary.json`,
+  com versões, máquina e condições.
+
+Deploy (Vercel):
+
+| Página  | Perfil  | Performance | Acessibilidade | Boas práticas | SEO |    LCP | CLS |    TBT |
+| ------- | ------- | ----------: | -------------: | ------------: | --: | -----: | --: | -----: |
+| Início  | mobile  |          86 |            100 |           100 | 100 | 2.99 s |   0 | 228 ms |
+| Início  | desktop |         100 |            100 |           100 | 100 | 0.64 s |   0 |   1 ms |
+| Detalhe | mobile  |          92 |             97 |           100 | 100 | 2.81 s |   0 | 100 ms |
+| Detalhe | desktop |         100 |            100 |           100 | 100 | 0.60 s |   0 |   0 ms |
+
+Build local (`vite preview`):
 
 | Página  | Perfil  | Performance | Acessibilidade | Boas práticas | SEO |    LCP | CLS |    TBT |
 | ------- | ------- | ----------: | -------------: | ------------: | --: | -----: | --: | -----: |
@@ -242,12 +263,14 @@ CHROME_PATH="/caminho/para/chrome" npm run lighthouse
 | Detalhe | mobile  |          83 |             97 |           100 | 100 | 3.55 s |   0 | 176 ms |
 | Detalhe | desktop |          99 |            100 |           100 | 100 | 0.79 s |   0 |   0 ms |
 
-A performance mobile ficou abaixo da meta de 90. A justificativa completa está em
+No deploy, todas as metas são atingidas, exceto a performance mobile da página inicial: 86, com as
+três execuções entre 83 e 90. No build local, a performance mobile fica em 78 (início) e 83
+(detalhe). A justificativa completa está em
 [ARCHITECTURE.md § 13](ARCHITECTURE.md#13-performance-e-lighthouse). Em resumo: o app é renderizado
 só no cliente, com a stack obrigatória no caminho crítico; o backend simulado roda dentro da página
-(Service Worker do MSW); e no layout mobile o LCP é a imagem do primeiro card, que depende da API.
-CLS (0), TBT (abaixo de 220 ms) e as demais categorias estão dentro das metas. O próximo passo para o
-mobile é SSR ou prerender da página inicial.
+(Service Worker do MSW); no layout mobile, o LCP da página inicial é a imagem do primeiro card, que
+depende da API; e o preview local serve HTTP/1.1 com gzip. O CLS fica em 0 em todas as páginas. O
+próximo passo para a página inicial no mobile é SSR ou prerender.
 
 ## Deploy (Vercel)
 
