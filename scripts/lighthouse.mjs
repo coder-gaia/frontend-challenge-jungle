@@ -8,7 +8,7 @@
  *  - summary.json e lighthouse/RESULTADOS.md (medianas, métricas, versões e ambiente)
  */
 import { spawn } from 'node:child_process'
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import * as chromeLauncher from 'chrome-launcher'
@@ -82,17 +82,34 @@ const preview = spawn(
   },
 )
 
+/** Resultados já gravados (usados por execuções parciais com LH_ONLY). */
+async function previousResults() {
+  try {
+    return JSON.parse(await readFile(SUMMARY_FILE, 'utf8')).results ?? []
+  } catch {
+    return []
+  }
+}
+
+async function removeReports(prefix) {
+  const files = await readdir(OUT).catch(() => [])
+  await Promise.all(files.filter((f) => f.startsWith(`${prefix}-`)).map((f) => rm(path.join(OUT, f))))
+}
+
 try {
   await waitForServer(BASE)
-  await rm(OUT, { recursive: true, force: true })
+  // Execução completa recomeça do zero; a parcial (LH_ONLY=inicio-mobile,...) preserva as demais.
+  const only = process.env.LH_ONLY?.split(',')
+  if (!only) await rm(OUT, { recursive: true, force: true })
   await mkdir(OUT, { recursive: true })
+  const previous = only ? await previousResults() : []
 
   const summary = []
   let chrome = 'desconhecida'
-  const only = process.env.LH_ONLY?.split(',')
   for (const page of AUDIT.pages) {
     for (const profile of AUDIT.profiles) {
       if (only && !only.includes(`${page.id}-${profile}`)) continue
+      await removeReports(`${page.id}-${profile}`)
       const runs = []
       const runCount = Number(process.env.LH_RUNS ?? AUDIT.runs)
       for (let i = 1; i <= runCount; i++) {
@@ -151,7 +168,7 @@ try {
     chrome,
     node: process.version,
     os: `${os.type()} ${os.release()} (${os.arch()})`,
-    cpu: `${os.cpus()[0]?.model ?? 'desconhecida'} × ${os.cpus().length}`,
+    cpu: `${os.cpus()[0]?.model.trim() ?? 'desconhecida'} × ${os.cpus().length}`,
     memoryGb: Math.round(os.totalmem() / 1024 ** 3),
     conditions:
       'Build de produção servido por vite preview (localhost), mocks MSW no cenário padrão, perfil Chrome limpo a cada medição (service worker registrado do zero).',
@@ -161,7 +178,12 @@ try {
       desktop: 'Preset desktop do Lighthouse: 1350×940, throttling simulado (RTT 40 ms, 10 Mbps, CPU 1x)',
     },
   }
-  const result = { environment, targets: AUDIT.targets, results: summary }
+  const order = AUDIT.pages.flatMap((p) => AUDIT.profiles.map((profile) => `${p.id}-${profile}`))
+  const key = (r) => `${r.page}-${r.profile}`
+  const results = [...previous.filter((r) => !summary.some((s) => key(s) === key(r))), ...summary].sort(
+    (a, b) => order.indexOf(key(a)) - order.indexOf(key(b)),
+  )
+  const result = { environment, targets: AUDIT.targets, results }
   await writeFile(SUMMARY_FILE, JSON.stringify(result, null, 2))
   await writeFile(RESULTS_FILE, renderMarkdown(result))
   console.log('\nResumo em lighthouse/RESULTADOS.md')
