@@ -19,6 +19,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // O backend simulado não usa cookies: ver src/mocks/shims/tough-cookie.ts.
+      'tough-cookie': fileURLToPath(new URL('./src/mocks/shims/tough-cookie.ts', import.meta.url)),
     },
   },
   server: { port: 5173, strictPort: true },

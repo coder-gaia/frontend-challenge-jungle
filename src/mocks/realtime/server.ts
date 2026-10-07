@@ -17,7 +17,10 @@ import { resolveSession } from '../lib/http'
  */
 
 export const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL ?? 'wss://realtime.kurio.mock').replace(/\/$/, '')
-const link = ws.link(`${SOCKET_URL}/socket.io/*`)
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+// O WebSocketHandler do MSW remove o prefixo `/socket.io/` da URL do cliente antes de casar o padrão,
+// então o link aponta para a origem do servidor (`<SOCKET_URL>/?EIO=4&transport=websocket`).
+const link = ws.link(new RegExp(`^${escapeRegExp(SOCKET_URL)}/`))
 
 const HEARTBEAT_MS = 20_000
 const RECENT_LIMIT = 50

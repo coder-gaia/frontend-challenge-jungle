@@ -1,27 +1,34 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { routeTree } from './routeTree.gen'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from '@tanstack/react-router'
+import { setApiReady } from '@/api/http'
+import { createQueryClient } from '@/api/query-client'
+import { createAppRouter } from '@/app/router'
+import { RealtimeProvider } from '@/features/realtime/realtime-provider'
 import './index.css'
 
+/**
+ * A camada de mocks (MSW: REST + Socket.IO) é ativada por configuração (`VITE_ENABLE_MOCKS`).
+ * A renderização não espera o service worker: as requisições é que aguardam `apiReady`.
+ */
 async function enableMocking() {
   if (import.meta.env.VITE_ENABLE_MOCKS !== 'true') return
   const { startMockServer } = await import('./mocks/browser')
   await startMockServer()
 }
 
-const router = createRouter({ routeTree })
+setApiReady(enableMocking())
 
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
+const queryClient = createQueryClient()
+const router = createAppRouter(queryClient)
 
-void enableMocking().then(() => {
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
-  )
-})
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <RealtimeProvider>
+        <RouterProvider router={router} />
+      </RealtimeProvider>
+    </QueryClientProvider>
+  </StrictMode>,
+)
