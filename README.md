@@ -48,8 +48,9 @@ visual (Playwright) e auditoria Lighthouse automatizada.
 
 ## Como rodar
 
-Pré-requisitos: **Node.js 20.19 ou superior** (testado com 22.13) e npm 10. Para o Lighthouse, um
-Chrome ou Chromium instalado.
+Pré-requisitos: **Node.js 20.19 ou superior** (testado com 22.13) e npm 10 ou superior. Para o
+Lighthouse, um Chrome ou Chromium instalado. O pacote `lighthouse` 13 pede Node 22.19 ou superior;
+no 22.13 ele roda, mas o `npm ci` mostra um aviso `EBADENGINE`.
 
 ```bash
 git clone https://github.com/coder-gaia/frontend-challenge-jungle.git
@@ -61,6 +62,17 @@ npm run dev        # http://localhost:5173, com o backend simulado ligado
 O `.env` versionado já liga os mocks, e nenhuma variável é secreta. Para sobrescrever algo
 localmente, crie um `.env.local`. Os dados do backend simulado ficam no `localStorage` do navegador:
 reinicie tudo com `?mockReset=1` ou pelo Chaos Lab.
+
+### Problemas comuns
+
+- **`EPERM: operation not permitted, unlink '...\*.node'` no `npm ci` ou `npm install` (Windows),
+  seguido de `'vite' não é reconhecido...`:** um servidor do projeto ainda está aberto (`npm run dev`
+  ou `npm run preview` em outro terminal) e mantém travados os binários nativos do Rolldown e do
+  Tailwind. Encerre esse processo e rode `npm ci` de novo.
+- **`Port 5173 is already in use`:** o dev server usa porta fixa. Feche a instância anterior ou use
+  outra porta: `npm run dev -- --port 5174`.
+- **Dados ou estado estranhos no app:** abra `http://localhost:5173/?mockReset=1` para restaurar o
+  banco simulado, as sessões e o cenário padrão.
 
 ### Variáveis de ambiente
 
