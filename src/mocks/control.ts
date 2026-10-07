@@ -58,9 +58,18 @@ function expireSessions(token?: string | null) {
   return expired.length
 }
 
+/** Como o MSW intercepta a rede nesta página (ver `startMockServer`). */
+export type MockTransport = 'service-worker' | 'in-page'
+let transport: MockTransport = 'service-worker'
+
+export function setMockTransport(value: MockTransport) {
+  transport = value
+}
+
 export function getMockState() {
   const db = getDb()
   return {
+    transport,
     config: getConfig(),
     scenarios: SCENARIO_IDS.map((id) => ({ id, ...SCENARIOS[id], config: undefined })),
     realtime: getRealtimeStats(),

@@ -268,6 +268,10 @@ function RealtimeTab({ state }: { state: MockState | undefined }) {
           <dd>{state ? (state.realtime.accepting ? 'sim' : 'não') : '—'}</dd>
           <dt className="text-text-secondary">Conexões (autenticadas)</dt>
           <dd>{state ? `${state.realtime.connections} (${state.realtime.authenticated})` : '—'}</dd>
+          <dt className="text-text-secondary">Interceptação</dt>
+          <dd data-testid="chaos-transport">
+            {state ? (state.transport === 'service-worker' ? 'Service Worker' : 'Em página') : '—'}
+          </dd>
         </dl>
         <div className="flex flex-wrap gap-2">
           <Button

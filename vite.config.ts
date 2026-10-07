@@ -66,7 +66,9 @@ export default defineConfig({
         // Menos requisições no carregamento inicial: dependências agrupadas por momento de uso.
         // Cada grupo leva junto as dependências ainda não capturadas, em ordem de prioridade: os
         // contratos (zod/big.js) ficam no `core`, carregado pelo app, e o `mocks` (importado
-        // dinamicamente no boot) só contém o MSW e o backend simulado.
+        // dinamicamente no boot) só contém o MSW e o backend simulado. O modo em página
+        // (src/mocks/in-page.ts e os interceptadores de fetch/XHR) fica de fora: só é baixado
+        // quando o Service Worker não intercepta a página.
         codeSplitting: {
           groups: [
             { name: 'react', priority: 40, test: nodeModules('react|react-dom|scheduler') },
@@ -79,7 +81,7 @@ export default defineConfig({
             {
               name: 'mocks',
               priority: 10,
-              test: /node_modules[\\/](msw|@mswjs|@bundled-es-modules|@open-draft|headers-polyfill|outvariant|strict-event-emitter|path-to-regexp|rettime|is-node-process|until-async|set-cookie-parser|engine\.io-parser|socket\.io-parser)[\\/]|src[\\/]mocks[\\/]/,
+              test: /node_modules[\\/](msw|@mswjs|@bundled-es-modules|@open-draft|headers-polyfill|outvariant|strict-event-emitter|path-to-regexp|rettime|is-node-process|until-async|set-cookie-parser|engine\.io-parser|socket\.io-parser)[\\/](?!interceptors[\\/]lib[\\/]browser[\\/](interceptors[\\/])?(fetch|XMLHttpRequest)\b)|src[\\/]mocks[\\/](?!in-page\.ts)/,
             },
           ],
         },

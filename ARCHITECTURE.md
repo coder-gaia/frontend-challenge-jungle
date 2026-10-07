@@ -348,6 +348,17 @@ E nunca dependemos só do evento:
   (`ws.link`) com `@mswjs/socket.io-binding`. O servidor autentica pelo pacote CONNECT
   (`auth.token`), mantém o mapa conexão → usuário para entregar `order.updated` só ao dono e envia o
   heartbeat do Engine.IO (PING) manualmente a cada 20 s.
+- **Dois modos de interceptação**, escolhidos no boot ([`src/mocks/browser.ts`](src/mocks/browser.ts))
+  e exibidos no Chaos Lab:
+  - **Service Worker** (padrão): as requisições aparecem no painel de rede do navegador como chamadas
+    reais. Só vale se o worker de fato controla a página, o que é verificado logo após a ativação.
+  - **Em página** ([`src/mocks/in-page.ts`](src/mocks/in-page.ts), carregado sob demanda): intercepta
+    XHR, fetch e WebSocket no próprio documento. Entra quando o app roda num iframe de outra origem
+    (simuladores mobile, previews de editor), quando o navegador não expõe ou bloqueia a API de
+    Service Worker, ou quando o worker não assume o controle da página. Sem isso, as chamadas vazariam
+    para a rede (404) ou o tempo real tentaria um servidor inexistente. Os três interceptadores ficam
+    numa única fonte: o fallback nativo do MSW 2.15 cria duas fontes com o mesmo nome
+    (`interceptor-source`), e a do WebSocket nunca é aplicada.
 - **Painel de controle:** endpoints `/__mock/*` (usados pelo Chaos Lab, que só "fala com a rede") e
   `window.__KURIO_MOCK__` (usado pelo Playwright via `page.evaluate`). Nenhum dos dois mexe no cache
   do cliente: tudo passa por REST ou Socket.IO.
@@ -490,6 +501,10 @@ Substituições de assets:
   e heartbeat manual.
 - **Primeira visita:** o Service Worker do MSW registra antes da primeira chamada de API, o que custa
   algumas centenas de ms. O Lighthouse sempre mede esse cenário, porque usa um perfil limpo.
+- **Modo em página:** as chamadas não aparecem no painel de rede do DevTools, porque são respondidas
+  dentro da página. Para inspecionar a rede no mobile, prefira o modo responsivo do DevTools
+  (`Ctrl+Shift+M`) a simuladores em iframe. O ajuste "Bypass for network" do DevTools também não é
+  detectado: com ele marcado, as requisições ignoram o worker.
 - **Token em `localStorage`**, por simplicidade da demo. Em produção, seria cookie
   `HttpOnly; Secure; SameSite` com refresh token rotativo.
 - **Performance mobile abaixo de 90** (seção 13). O próximo passo é SSR ou prerender.
@@ -497,5 +512,10 @@ Substituições de assets:
   unidade; a lógica crítica (processador de eventos, idempotência, cotação) é exercitada pelos
   cenários E2E. As baselines visuais são por sistema operacional (sufixo da plataforma no nome do
   arquivo).
+- **Login social (Google e Facebook):** os botões do Figma foram mantidos, mas avisam que a opção
+  não está disponível na demonstração. O desafio pede cadastro, login, logout e sessão integrados à
+  API simulada, com e-mail e senha, e deixa integrações externas reais fora do escopo. Um OAuth de
+  verdade exigiria um backend para a troca de código por token e credenciais de cada provedor;
+  simulá-lo apenas na UI não acrescentaria comportamento verificável.
 - **Fora do escopo:** i18n (só PT-BR), pagamentos e carteiras reais (a conexão é simulada) e as áreas
   listadas em `/em-breve`.

@@ -6,6 +6,7 @@ import { http } from '@/api/http'
  * do TanStack Query ou emite eventos diretamente — os efeitos chegam via REST e Socket.IO.
  */
 export interface MockState {
+  transport: 'service-worker' | 'in-page'
   config: {
     scenario: string
     seed: number

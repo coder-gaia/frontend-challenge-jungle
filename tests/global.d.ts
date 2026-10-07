@@ -1,6 +1,7 @@
 /* Controle do backend simulado exposto pelo MSW no navegador (ver src/mocks/control.ts). */
 interface KurioMockControl {
   ready: true
+  transport: 'service-worker' | 'in-page'
   getState: () => {
     config: Record<string, unknown>
     realtime: { connections: number; authenticated: number; accepting: boolean }
