@@ -166,7 +166,7 @@ export function emitStaleNftEvent(): NftUpdatedEvent | null {
     data: {
       ...last.data,
       price: last.data.editions[0]?.previousPrice ?? last.data.price,
-      editions: last.data.editions.map((e) => ({ ...e, price: e.previousPrice })),
+      editions: last.data.editions.map((e) => ({ ...e, price: e.previousPrice, previousPrice: e.price })),
     },
   }
   publish(stale, { remember: false })
