@@ -74,9 +74,11 @@ export default defineConfig({
             { name: 'react', priority: 40, test: nodeModules('react|react-dom|scheduler') },
             { name: 'tanstack', priority: 40, test: nodeModules('@tanstack') },
             {
+              // O helper de preload do Vite é usado pelo app e pelos mocks: fica no `core` para o
+              // app não importar o chunk de mocks só por causa dele.
               name: 'core',
               priority: 30,
-              test: /node_modules[\\/](axios|zod|sonner|tailwind-merge|clsx|class-variance-authority|big\.js)[\\/]|src[\\/](contracts[\\/]|lib[\\/]eth\.ts)/,
+              test: /node_modules[\\/](axios|zod|sonner|tailwind-merge|clsx|class-variance-authority|big\.js)[\\/]|src[\\/](contracts[\\/]|lib[\\/]eth\.ts)|vite[\\/]preload-helper/,
             },
             {
               name: 'mocks',
