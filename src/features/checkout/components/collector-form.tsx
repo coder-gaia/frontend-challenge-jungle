@@ -1,5 +1,6 @@
-import type { UseFormReturn } from 'react-hook-form'
+import { useWatch, type UseFormReturn } from 'react-hook-form'
 import { NETWORK_LABEL, networkSchema, WALLET_PROVIDER_LABEL, walletProviderSchema } from '@/contracts'
+import { EnsSuffix } from '@/components/ens-suffix'
 import { TextField } from '@/components/form-field'
 import { SelectField } from '@/components/select-field'
 import type { CheckoutFormInput, CheckoutFormValues } from '../schema'
@@ -16,9 +17,9 @@ export function CollectorForm({
 }: {
   form: UseFormReturn<CheckoutFormInput, unknown, CheckoutFormValues>
 }) {
-  const { register, formState, watch } = form
+  const { register, formState } = form
   const errors = formState.errors
-  const useOtherWallet = watch('useOtherWallet')
+  const useOtherWallet = useWatch({ control: form.control, name: 'useOtherWallet' })
 
   return (
     <section aria-labelledby="collector-title" className="flex flex-col gap-3">
@@ -105,15 +106,7 @@ export function CollectorForm({
             requiredMark
             error={errors.ensName?.message}
             className="flex gap-2.5"
-            startAdornment={
-              <select
-                aria-label="Domínio ENS"
-                defaultValue=".eth"
-                className="h-10 w-[78px] shrink-0 cursor-pointer rounded-[3px] border border-input bg-background px-2 text-15"
-              >
-                <option value=".eth">.eth</option>
-              </select>
-            }
+            startAdornment={<EnsSuffix />}
             {...register('ensName')}
           />
         </div>

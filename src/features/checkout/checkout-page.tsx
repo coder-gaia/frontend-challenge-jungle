@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
@@ -166,21 +166,20 @@ function CheckoutForm({
   })
 
   // Rascunho por usuário: sobrevive à expiração da sessão e ao refresh (retomada do checkout).
-  useEffect(() => {
-    const subscription = form.watch((values) =>
-      writeStorage(
-        STORAGE_KEYS.checkoutDraft,
-        { userId, values: values as CheckoutFormInput } satisfies Draft,
-        'session',
-      ),
-    )
-    return () => subscription.unsubscribe()
-  }, [form, userId])
+  useEffect(
+    () =>
+      form.subscribe({
+        formState: { values: true },
+        callback: ({ values }) =>
+          writeStorage(STORAGE_KEYS.checkoutDraft, { userId, values } satisfies Draft, 'session'),
+      }),
+    [form, userId],
+  )
 
-  const walletId = form.watch('walletId')
-  const provider = form.watch('provider')
-  const network = form.watch('network')
-  const destination = form.watch('walletAddress')
+  const [walletId, provider, network, destination] = useWatch({
+    control: form.control,
+    name: ['walletId', 'provider', 'network', 'walletAddress'],
+  })
   const wallet = wallets.find((w) => w.id === walletId)
 
   const quoteQuery = useCartQuote(cart, network, 'checkout')
@@ -239,25 +238,28 @@ function CheckoutForm({
     }
   }
 
-  const openReview = form.handleSubmit(
-    async () => {
-      if (!connected) {
-        setConnection({ status: 'error', message: 'Conecte a carteira para confirmar a compra.' })
-        connectRef.current?.scrollIntoView({ block: 'center' })
-        connectRef.current?.querySelector('button')?.focus()
-        announce('Conecte a carteira para confirmar a compra.', 'assertive')
-        return
-      }
-      setOrderError(null)
-      setServerReasons([])
-      setReviewedSignature(quote ? quoteSignature(quote) : null)
-      setReviewOpen(true)
-      // Revalida preço, disponibilidade, cupom e taxas antes de confirmar.
-      const { data } = await quoteQuery.refetch()
-      if (data && !quote) setReviewedSignature(quoteSignature(data))
-    },
-    () => announce('Revise os campos destacados no formulário.', 'assertive'),
-  )
+  const reviewIfValid = async () => {
+    if (!connected) {
+      setConnection({ status: 'error', message: 'Conecte a carteira para confirmar a compra.' })
+      connectRef.current?.scrollIntoView({ block: 'center' })
+      connectRef.current?.querySelector('button')?.focus()
+      announce('Conecte a carteira para confirmar a compra.', 'assertive')
+      return
+    }
+    setOrderError(null)
+    setServerReasons([])
+    setReviewedSignature(quote ? quoteSignature(quote) : null)
+    setReviewOpen(true)
+    // Revalida preço, disponibilidade, cupom e taxas antes de confirmar.
+    const { data } = await quoteQuery.refetch()
+    if (data && !quote) setReviewedSignature(quoteSignature(data))
+  }
+
+  // handleSubmit é chamado no evento (não no render): valida o formulário e abre a revisão.
+  const openReview = (event: React.FormEvent) =>
+    void form.handleSubmit(reviewIfValid, () =>
+      announce('Revise os campos destacados no formulário.', 'assertive'),
+    )(event)
 
   const confirm = async () => {
     if (!quote) return

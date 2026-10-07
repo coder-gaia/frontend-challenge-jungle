@@ -33,6 +33,8 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       ...jsxA11y.flatConfigs.recommended.rules,
       'react-refresh/only-export-components': 'off',
+      // Rótulos que envolvem o controle e têm texto em elementos aninhados.
+      'jsx-a11y/label-has-associated-control': ['error', { assert: 'either', depth: 4 }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
