@@ -1,11 +1,12 @@
 /**
  * Auditoria Lighthouse reproduzível (ver lighthouse/config.mjs).
- * Uso: npm run lighthouse   (faz o build e roda as medições)
+ * Uso: npm run lighthouse          (faz o build e mede o vite preview local)
+ *      npm run lighthouse:deploy   (mede o deploy: --url=<endereço> --name=<alvo>)
  *
- * Saída em lighthouse/reports/:
+ * Saída em lighthouse/reports/ (ou lighthouse/reports-<alvo>/ para deploys):
  *  - <pagina>-<perfil>-run<N>.report.json  (todas as medições)
  *  - <pagina>-<perfil>-mediana.report.html (relatório HTML da medição mediana)
- *  - summary.json e lighthouse/RESULTADOS.md (medianas, métricas, versões e ambiente)
+ *  - summary.json e lighthouse/RESULTADOS[-<alvo>].md (medianas, métricas, versões e ambiente)
  */
 import { spawn } from 'node:child_process'
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -15,11 +16,15 @@ import * as chromeLauncher from 'chrome-launcher'
 import lighthouse from 'lighthouse'
 import desktopConfig from 'lighthouse/core/config/desktop-config.js'
 import { AUDIT } from '../lighthouse/config.mjs'
-import { renderMarkdown, RESULTS_FILE, SUMMARY_FILE } from './lighthouse-summary.mjs'
+import { auditPaths, renderMarkdown } from './lighthouse-summary.mjs'
 
 const ROOT = path.resolve(import.meta.dirname, '..')
-const OUT = path.join(ROOT, 'lighthouse', 'reports')
-const BASE = process.env.LH_BASE_URL ?? `http://localhost:${AUDIT.port}`
+const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1]
+// Com --url, mede um deploy e não sobe o preview local.
+const REMOTE_URL = arg('url')?.replace(/\/$/, '')
+const TARGET = REMOTE_URL ? (arg('name') ?? 'deploy') : 'local'
+const BASE = REMOTE_URL ?? `http://localhost:${AUDIT.port}`
+const { reportsDir: OUT, summaryFile: SUMMARY_FILE, resultsFile: RESULTS_FILE } = auditPaths(TARGET)
 
 const median = (values) => {
   const sorted = [...values].sort((a, b) => a - b)
@@ -73,14 +78,19 @@ async function chromeVersion(port) {
   }
 }
 
-const preview = spawn(
-  process.execPath,
-  [path.join(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(AUDIT.port), '--strictPort'],
-  {
-    cwd: ROOT,
-    stdio: 'ignore',
-  },
-)
+const preview = REMOTE_URL
+  ? null
+  : spawn(
+      process.execPath,
+      [
+        path.join(ROOT, 'node_modules/vite/bin/vite.js'),
+        'preview',
+        '--port',
+        String(AUDIT.port),
+        '--strictPort',
+      ],
+      { cwd: ROOT, stdio: 'ignore' },
+    )
 
 /** Resultados já gravados (usados por execuções parciais com LH_ONLY). */
 async function previousResults() {
@@ -170,8 +180,9 @@ try {
     os: `${os.type()} ${os.release()} (${os.arch()})`,
     cpu: `${os.cpus()[0]?.model.trim() ?? 'desconhecida'} × ${os.cpus().length}`,
     memoryGb: Math.round(os.totalmem() / 1024 ** 3),
-    conditions:
-      'Build de produção servido por vite preview (localhost), mocks MSW no cenário padrão, perfil Chrome limpo a cada medição (service worker registrado do zero).',
+    conditions: REMOTE_URL
+      ? `Deploy em ${REMOTE_URL} (servido pela hospedagem), mocks MSW no cenário padrão, perfil Chrome limpo a cada medição (service worker registrado do zero).`
+      : 'Build de produção servido por vite preview (localhost), mocks MSW no cenário padrão, perfil Chrome limpo a cada medição (service worker registrado do zero).',
     throttling: {
       mobile:
         'Padrão do Lighthouse: Moto G Power emulado, throttling simulado (RTT 150 ms, 1,6 Mbps, CPU 4x)',
@@ -183,10 +194,19 @@ try {
   const results = [...previous.filter((r) => !summary.some((s) => key(s) === key(r))), ...summary].sort(
     (a, b) => order.indexOf(key(a)) - order.indexOf(key(b)),
   )
-  const result = { environment, targets: AUDIT.targets, results }
+  const target = REMOTE_URL
+    ? {
+        name: TARGET,
+        url: REMOTE_URL,
+        command: process.env.npm_lifecycle_event
+          ? `npm run ${process.env.npm_lifecycle_event}`
+          : 'node scripts/lighthouse.mjs',
+      }
+    : { name: 'local' }
+  const result = { environment, targets: AUDIT.targets, target, results }
   await writeFile(SUMMARY_FILE, JSON.stringify(result, null, 2))
   await writeFile(RESULTS_FILE, renderMarkdown(result))
-  console.log('\nResumo em lighthouse/RESULTADOS.md')
+  console.log(`\nResumo em ${path.relative(ROOT, RESULTS_FILE)}`)
 } finally {
-  preview.kill()
+  preview?.kill()
 }

@@ -413,22 +413,29 @@ O que foi feito, e o que cada medida resolveu:
 | `content-visibility: auto` nas seções abaixo da dobra                                                                            | Menos layout e pintura no primeiro carregamento                                                                                             |
 | Roboto Mono variável self-hosted (latin/latin-ext), `font-display: swap`, preload do subconjunto latin                           | Sem requisição a terceiros e sem troca tardia de fonte                                                                                      |
 
-Resultados (medianas de 3 medições; tabela completa, ambiente e relatórios em
-[`lighthouse/RESULTADOS.md`](lighthouse/RESULTADOS.md)):
+Resultados: medianas de 3 medições por página e perfil, em duas auditorias com a mesma configuração.
+A do **deploy** ([`lighthouse/RESULTADOS-vercel.md`](lighthouse/RESULTADOS-vercel.md)) mede o app
+servido pela Vercel, com HTTP/2, Brotli e CDN. A do **build local**
+([`lighthouse/RESULTADOS.md`](lighthouse/RESULTADOS.md)) mede o `vite preview`, que serve HTTP/1.1
+com gzip e é reproduzível em qualquer máquina.
 
-| Página  | Perfil  | Performance | Acessibilidade | Boas práticas | SEO |    FCP |    LCP | CLS |    TBT |
-| ------- | ------- | ----------: | -------------: | ------------: | --: | -----: | -----: | --: | -----: |
-| Início  | mobile  |          78 |            100 |           100 | 100 | 3.05 s | 3.95 s |   0 | 217 ms |
-| Início  | desktop |          99 |            100 |           100 | 100 | 0.71 s | 0.86 s |   0 |   0 ms |
-| Detalhe | mobile  |          83 |             97 |           100 | 100 | 2.94 s | 3.55 s |   0 | 176 ms |
-| Detalhe | desktop |          99 |            100 |           100 | 100 | 0.68 s | 0.79 s |   0 |   0 ms |
+| Página  | Perfil  | Performance (deploy / local) | Acessibilidade | Boas práticas | SEO | FCP (deploy) | LCP (deploy) | CLS | TBT (deploy) |
+| ------- | ------- | ---------------------------: | -------------: | ------------: | --: | -----------: | -----------: | --: | -----------: |
+| Início  | mobile  |                  **86** / 78 |            100 |           100 | 100 |       2.57 s |       2.99 s |   0 |       228 ms |
+| Início  | desktop |                 **100** / 99 |            100 |           100 | 100 |       0.55 s |       0.64 s |   0 |         1 ms |
+| Detalhe | mobile  |                  **92** / 83 |             97 |           100 | 100 |       2.51 s |       2.81 s |   0 |       100 ms |
+| Detalhe | desktop |                 **100** / 99 |            100 |           100 | 100 |       0.52 s |       0.60 s |   0 |         0 ms |
 
-**Por que a performance mobile ficou abaixo de 90:**
+No deploy, todas as metas são atingidas, exceto a performance mobile da página inicial (86, com as
+três execuções entre 83 e 90). No build local, as duas páginas ficam abaixo de 90 no mobile.
+
+**Por que a performance mobile fica abaixo de 90 nesses casos:**
 
 1. **Renderização 100% no cliente.** Não há HTML com conteúdo antes do JavaScript. A stack
    obrigatória (React + React DOM, TanStack Router + Query, Axios, Zod) soma cerca de 210 KB gzip no
    caminho crítico. No perfil mobile do Lighthouse (4G lento simulado de 1,6 Mbps com RTT de 150 ms,
-   CPU 4× mais lenta), a primeira pintura fica em torno de 3 s, o que já limita FCP, Speed Index e LCP.
+   CPU 4× mais lenta), a primeira pintura fica entre 2,5 s (deploy) e 3 s (local), o que já limita
+   FCP, Speed Index e LCP.
 2. **O backend roda dentro da página.** O MSW (63 KB gzip) precisa baixar, avaliar e registrar o
    Service Worker antes da primeira resposta da API. Depois disso, toda requisição (inclusive de
    imagem) passa pelo ciclo Service Worker → página → handler. Esse custo não existe em produção, com
@@ -436,14 +443,16 @@ Resultados (medianas de 3 medições; tabela completa, ambiente e relatórios em
 3. **LCP dependente de dados no mobile.** No layout mobile do Figma, a arte do hero tem 138 px e é
    menor que o primeiro card do catálogo (174 px). Por isso o LCP é a imagem do card, que depende da
    resposta de `GET /nfts`. No desktop, a arte do hero (450 px) é o LCP, não depende da API e o
-   resultado é 99.
+   resultado fica entre 99 e 100.
+4. **Transporte do preview local.** O `vite preview` serve HTTP/1.1 com gzip. A mesma build, servida
+   pela Vercel com HTTP/2, Brotli e CDN, sobe de 78 para 86 (início) e de 83 para 92 (detalhe) no
+   mobile.
 
-As métricas que dependem só do front estão dentro das metas: CLS 0, TBT abaixo de 220 ms,
-Acessibilidade, Boas práticas e SEO de 97 a 100. **Para passar de 90 no mobile, o próximo passo é
-estrutural:** SSR com streaming (TanStack Start) ou prerender da página inicial, com o cache do
-Query desidratado no HTML e CSS crítico inline. Com isso, o FCP fica perto de 1 s e o LCP deixa de
-esperar o JS. Somam-se a isso a API real em CDN ou edge sem a camada de mock na página, HTTP/2 ou
-HTTP/3 com Brotli e `zod/mini` no caminho crítico.
+O CLS fica em 0 em todas as páginas, e Acessibilidade, Boas práticas e SEO ficam entre 97 e 100.
+**Para a página inicial passar de 90 no mobile com folga, o próximo passo é estrutural:** SSR com
+streaming (TanStack Start) ou prerender da página inicial, com o cache do Query desidratado no HTML e
+CSS crítico inline. Com isso, o FCP fica perto de 1 s e o LCP deixa de esperar o JS. Somam-se a isso
+a API real em CDN ou edge, sem a camada de mock na página, e `zod/mini` no caminho crítico.
 
 ## 14. Decisões de UX
 
@@ -507,7 +516,8 @@ Substituições de assets:
   detectado: com ele marcado, as requisições ignoram o worker.
 - **Token em `localStorage`**, por simplicidade da demo. Em produção, seria cookie
   `HttpOnly; Secure; SameSite` com refresh token rotativo.
-- **Performance mobile abaixo de 90** (seção 13). O próximo passo é SSR ou prerender.
+- **Performance mobile da página inicial abaixo de 90:** 86 no deploy e 78 no preview local (seção
+  13). O próximo passo é SSR ou prerender.
 - **Testes:** a cobertura é E2E (Playwright, desktop e mobile) mais regressão visual. Não há testes de
   unidade; a lógica crítica (processador de eventos, idempotência, cotação) é exercitada pelos
   cenários E2E. As baselines visuais são por sistema operacional (sufixo da plataforma no nome do

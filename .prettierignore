@@ -2,9 +2,9 @@ dist
 coverage
 playwright-report
 test-results
-lighthouse/reports
+lighthouse/reports*
 public/mockServiceWorker.js
 src/routeTree.gen.ts
 package-lock.json
 tests/**/__screenshots__
-lighthouse/RESULTADOS.md
+lighthouse/RESULTADOS*.md

@@ -19,7 +19,8 @@
     "test:visual:update": "playwright test tests/visual --update-snapshots",
     "test:report": "playwright show-report",
     "lighthouse": "npm run build && node scripts/lighthouse.mjs",
-    "lighthouse:run": "node scripts/lighthouse.mjs"
+    "lighthouse:run": "node scripts/lighthouse.mjs",
+    "lighthouse:deploy": "node scripts/lighthouse.mjs --url=https://kurio-sage.vercel.app --name=vercel"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

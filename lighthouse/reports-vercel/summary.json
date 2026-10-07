@@ -1,0 +1,241 @@
+{
+  "environment": {
+    "date": "2026-10-07T18:39:02.275Z",
+    "lighthouse": "13.5.0",
+    "chrome": "Chrome/155.0.8059.39",
+    "node": "v22.13.0",
+    "os": "Windows_NT 10.0.26300 (x64)",
+    "cpu": "AMD Ryzen 7 5700U with Radeon Graphics × 16",
+    "memoryGb": 18,
+    "conditions": "Deploy em https://kurio-sage.vercel.app (servido pela hospedagem), mocks MSW no cenário padrão, perfil Chrome limpo a cada medição (service worker registrado do zero).",
+    "throttling": {
+      "mobile": "Padrão do Lighthouse: Moto G Power emulado, throttling simulado (RTT 150 ms, 1,6 Mbps, CPU 4x)",
+      "desktop": "Preset desktop do Lighthouse: 1350×940, throttling simulado (RTT 40 ms, 10 Mbps, CPU 1x)"
+    }
+  },
+  "targets": {
+    "performance": 90,
+    "accessibility": 95,
+    "best-practices": 95,
+    "seo": 90
+  },
+  "target": {
+    "name": "vercel",
+    "url": "https://kurio-sage.vercel.app",
+    "command": "npm run lighthouse:deploy"
+  },
+  "results": [
+    {
+      "page": "inicio",
+      "url": "/",
+      "profile": "mobile",
+      "categories": {
+        "performance": 86,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "largest-contentful-paint": 2990.786,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 227.5,
+        "first-contentful-paint": 2573.24,
+        "speed-index": 2573.24
+      },
+      "runs": [
+        {
+          "categories": {
+            "performance": 83,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 3107.616,
+          "cls": 0,
+          "tbt": 227.5
+        },
+        {
+          "categories": {
+            "performance": 86,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 2990.786,
+          "cls": 0,
+          "tbt": 248.5
+        },
+        {
+          "categories": {
+            "performance": 90,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 2964.24,
+          "cls": 0,
+          "tbt": 117
+        }
+      ]
+    },
+    {
+      "page": "inicio",
+      "url": "/",
+      "profile": "desktop",
+      "categories": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "largest-contentful-paint": 644.578,
+        "cumulative-layout-shift": 0.00003509389261510609,
+        "total-blocking-time": 1,
+        "first-contentful-paint": 549.886,
+        "speed-index": 728.133934126095
+      },
+      "runs": [
+        {
+          "categories": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 644.462,
+          "cls": 0.00003509389261510609,
+          "tbt": 0
+        },
+        {
+          "categories": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 644.578,
+          "cls": 0.00003509389261510609,
+          "tbt": 1
+        },
+        {
+          "categories": {
+            "performance": 97,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 701.886,
+          "cls": 0.00003509389261510609,
+          "tbt": 127
+        }
+      ]
+    },
+    {
+      "page": "detalhe",
+      "url": "/nft/emerald-ape-042",
+      "profile": "mobile",
+      "categories": {
+        "performance": 92,
+        "accessibility": 97,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "largest-contentful-paint": 2812.625,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 99.5,
+        "first-contentful-paint": 2512.625,
+        "speed-index": 2512.625
+      },
+      "runs": [
+        {
+          "categories": {
+            "performance": 92,
+            "accessibility": 97,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 2812.625,
+          "cls": 0,
+          "tbt": 95.5
+        },
+        {
+          "categories": {
+            "performance": 91,
+            "accessibility": 97,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 2814.031,
+          "cls": 0,
+          "tbt": 138
+        },
+        {
+          "categories": {
+            "performance": 92,
+            "accessibility": 97,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 2810.552,
+          "cls": 0,
+          "tbt": 99.5
+        }
+      ]
+    },
+    {
+      "page": "detalhe",
+      "url": "/nft/emerald-ape-042",
+      "profile": "desktop",
+      "categories": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "largest-contentful-paint": 603.7139999999999,
+        "cumulative-layout-shift": 0,
+        "total-blocking-time": 0,
+        "first-contentful-paint": 522.1759999999999,
+        "speed-index": 573.9854499991603
+      },
+      "runs": [
+        {
+          "categories": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 603.7139999999999,
+          "cls": 0,
+          "tbt": 0
+        },
+        {
+          "categories": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 604.1759999999999,
+          "cls": 0,
+          "tbt": 0
+        },
+        {
+          "categories": {
+            "performance": 100,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 100
+          },
+          "lcp": 586.265,
+          "cls": 0,
+          "tbt": 0
+        }
+      ]
+    }
+  ]
+}
