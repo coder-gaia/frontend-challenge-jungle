@@ -1,0 +1,9 @@
+dist
+coverage
+playwright-report
+test-results
+lighthouse/reports
+public/mockServiceWorker.js
+src/routeTree.gen.ts
+package-lock.json
+tests/**/__screenshots__

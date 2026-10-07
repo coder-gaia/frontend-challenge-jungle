@@ -1,0 +1,20 @@
+# dependências e build
+node_modules
+dist
+dist-ssr
+*.local
+
+# relatórios gerados localmente
+playwright-report
+test-results
+blob-report
+playwright/.cache
+lighthouse/.tmp
+
+# editores e SO
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.log

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KURIO · Marketplace de NFTs</title>
+    <meta
+      name="description"
+      content="KURIO é um marketplace de NFTs para descobrir, colecionar e comprar arte digital verificada de criadores emergentes e consagrados."
+    />
+    <meta name="theme-color" content="#140d0a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="KURIO · Marketplace de NFTs" />
+    <meta property="og:description" content="Seja dono do futuro da arte digital." />
+    <meta property="og:image" content="/nfts/emerald-ape-960.webp" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      href="/fonts/roboto-mono-latin-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script>
+      // A arte do hero é o maior elemento da página inicial: antecipa o download só nessa rota.
+      if (location.pathname === '/') {
+        var l = document.createElement('link')
+        l.rel = 'preload'
+        l.as = 'image'
+        l.fetchPriority = 'high'
+        l.setAttribute(
+          'imagesrcset',
+          '/nfts/emerald-ape-320.webp 320w, /nfts/emerald-ape-640.webp 640w, /nfts/emerald-ape-960.webp 960w',
+        )
+        l.setAttribute('imagesizes', '(min-width: 1024px) 450px, 140px')
+        document.head.appendChild(l)
+      }
+    </script>
+    <style>
+      html {
+        background: #140d0a;
+        color-scheme: dark;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>O KURIO precisa de JavaScript habilitado para funcionar.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,245 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/*
+ * KURIO — tokens extraídos do Figma ("Marketplace de NFTs GreenMint").
+ * O produto é dark-only: as variáveis do shadcn/ui apontam para a paleta da marca.
+ */
+
+@font-face {
+  font-family: 'Roboto Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('/fonts/roboto-mono-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Roboto Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 700;
+  src: url('/fonts/roboto-mono-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF,
+    U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Fallback métrico para reduzir CLS enquanto a fonte web carrega. */
+@font-face {
+  font-family: 'Roboto Mono Fallback';
+  src: local('Courier New'), local('Consolas'), local('Menlo');
+  size-adjust: 100%;
+  ascent-override: 92%;
+  descent-override: 24%;
+}
+
+:root {
+  color-scheme: dark;
+  --radius: 0.375rem;
+
+  /* Paleta da marca (Figma → Color/*) */
+  --kurio-ink: #140d0a;
+  --kurio-surface: #241612;
+  --kurio-surface-raised: #2f1d15;
+  --kurio-surface-dark: #38220f;
+  --kurio-border: #3f2319;
+  --kurio-border-soft: #55321f;
+  --kurio-primary: #d28a4c;
+  --kurio-primary-light: #dd9a5f;
+  --kurio-primary-dark: #c47b3e;
+  --kurio-foreground: #f5f1eb;
+  --kurio-text-secondary: #cfb28c;
+  --kurio-text-muted: #b39463;
+  --kurio-text-accent: #e89b55;
+  --kurio-coral: #f0805f;
+  --kurio-success: #00a66c;
+  --kurio-amber: #e3a44e;
+  --kurio-error: #ed1b2e;
+
+  /* Mapeamento para os tokens do shadcn/ui */
+  --background: var(--kurio-ink);
+  --foreground: var(--kurio-foreground);
+  --card: var(--kurio-surface);
+  --card-foreground: var(--kurio-foreground);
+  --popover: var(--kurio-surface);
+  --popover-foreground: var(--kurio-foreground);
+  --primary: var(--kurio-primary);
+  --primary-foreground: var(--kurio-ink);
+  --secondary: var(--kurio-surface-raised);
+  --secondary-foreground: var(--kurio-foreground);
+  --muted: var(--kurio-surface-raised);
+  --muted-foreground: var(--kurio-text-secondary);
+  --accent: var(--kurio-surface-dark);
+  --accent-foreground: var(--kurio-text-accent);
+  --destructive: var(--kurio-error);
+  /* Vermelho mais claro para texto de erro sobre fundos escuros (contraste ≥ 4.5:1). */
+  --destructive-foreground: #ff8a7d;
+  --border: var(--kurio-border);
+  --input: var(--kurio-border);
+  --ring: var(--kurio-primary);
+}
+
+@theme inline {
+  --font-sans: 'Roboto Mono Variable', 'Roboto Mono Fallback', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: 'Roboto Mono Variable', 'Roboto Mono Fallback', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-ink: var(--kurio-ink);
+  --color-surface: var(--kurio-surface);
+  --color-surface-raised: var(--kurio-surface-raised);
+  --color-surface-dark: var(--kurio-surface-dark);
+  --color-border-soft: var(--kurio-border-soft);
+  --color-brand: var(--kurio-primary);
+  --color-brand-light: var(--kurio-primary-light);
+  --color-brand-dark: var(--kurio-primary-dark);
+  --color-text-secondary: var(--kurio-text-secondary);
+  --color-text-muted: var(--kurio-text-muted);
+  --color-text-accent: var(--kurio-text-accent);
+  --color-coral: var(--kurio-coral);
+  --color-success: var(--kurio-success);
+  --color-amber: var(--kurio-amber);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+
+  /* Escala tipográfica do Figma (tamanho / altura de linha) */
+  --text-display: 2.6875rem;
+  --text-display--line-height: 4.375rem;
+  --text-h1: 1.75rem;
+  --text-h1--line-height: 2.3rem;
+  --text-15: 0.9375rem;
+  --text-15--line-height: 1.25rem;
+  --text-17: 1.0625rem;
+  --text-17--line-height: 1.5rem;
+  --text-13: 0.8125rem;
+  --text-13--line-height: 1.375rem;
+  --text-22: 1.375rem;
+  --text-22--line-height: 1.75rem;
+
+  --shadow-glow: 0 0 20px rgb(10 6 4 / 0.45);
+  --shadow-stepper: 0 4px 12px -2px rgb(20 13 10 / 0.15);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-flash-up: flash-up 1.4s ease-out;
+  --animate-flash-down: flash-down 1.4s ease-out;
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes flash-up {
+    0%,
+    30% {
+      background-color: rgb(0 166 108 / 0.28);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  @keyframes flash-down {
+    0%,
+    30% {
+      background-color: rgb(240 128 95 / 0.3);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply min-h-dvh bg-background font-sans text-foreground antialiased;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+  /* Foco sempre visível ao navegar por teclado. */
+  :focus-visible {
+    outline: 2px solid var(--kurio-primary);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: rgb(210 138 76 / 0.45);
+    color: var(--kurio-foreground);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--kurio-text-muted);
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .container-kurio {
+    @apply mx-auto w-full max-w-[1200px] px-4 md:px-8 xl:px-0;
+  }
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--kurio-surface-raised) 25%,
+      color-mix(in srgb, var(--kurio-surface-raised) 60%, var(--kurio-border-soft)) 50%,
+      var(--kurio-surface-raised) 75%
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shimmer {
+      animation: none;
+    }
+  }
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
