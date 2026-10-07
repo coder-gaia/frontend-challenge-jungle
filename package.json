@@ -17,7 +17,9 @@
     "test:e2e:mobile": "playwright test --project=mobile",
     "test:visual": "playwright test tests/visual",
     "test:visual:update": "playwright test tests/visual --update-snapshots",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "lighthouse": "npm run build && node scripts/lighthouse.mjs",
+    "lighthouse:run": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

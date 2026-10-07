@@ -60,7 +60,10 @@ const PROMOS = [
 
 export function Promos() {
   return (
-    <section aria-label="Coleções em destaque" className="container-kurio grid gap-7 lg:grid-cols-2">
+    <section
+      aria-label="Coleções em destaque"
+      className="defer-render container-kurio grid gap-7 lg:grid-cols-2"
+    >
       {PROMOS.map((promo) => (
         <article
           key={promo.art}
@@ -133,7 +136,10 @@ const POSTS = [
 /** "Diário da Cunhagem": conteúdo editorial (as matérias completas estão fora do escopo). */
 export function Journal() {
   return (
-    <section aria-labelledby="journal-title" className="container-kurio flex flex-col items-center gap-10">
+    <section
+      aria-labelledby="journal-title"
+      className="defer-render container-kurio flex flex-col items-center gap-10"
+    >
       <header className="flex flex-col items-center gap-3 text-center">
         <h2 id="journal-title" className="text-h1 font-bold">
           Diário da Cunhagem

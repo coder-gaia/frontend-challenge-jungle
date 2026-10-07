@@ -236,6 +236,11 @@
       animation: none;
     }
   }
+  /* Seções abaixo da dobra: o navegador pula renderização/layout até elas se aproximarem da tela. */
+  .defer-render {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+  }
   .scrollbar-none {
     scrollbar-width: none;
   }

@@ -2,7 +2,38 @@ import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
+
+const nodeModules = (packages: string) => new RegExp(`node_modules[\\\\/](${packages})[\\\\/]`)
+
+/**
+ * O backend simulado (MSW) é importado dinamicamente no boot e toda requisição espera por ele:
+ * pré-carregar o chunk no HTML evita uma ida e volta extra antes das primeiras chamadas à API.
+ */
+function preloadMocksChunk(): Plugin {
+  return {
+    name: 'kurio:preload-mocks-chunk',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        if (process.env.VITE_ENABLE_MOCKS === 'false') return []
+        const chunk = Object.values(ctx.bundle ?? {}).find(
+          (output) => output.type === 'chunk' && output.name === 'mocks',
+        )
+        return chunk
+          ? [
+              {
+                tag: 'link',
+                attrs: { rel: 'modulepreload', crossorigin: '', href: `/${chunk.fileName}` },
+                injectTo: 'head',
+              },
+            ]
+          : []
+      },
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
@@ -15,6 +46,7 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    preloadMocksChunk(),
   ],
   resolve: {
     alias: {
@@ -29,5 +61,29 @@ export default defineConfig({
     target: 'es2022',
     sourcemap: true,
     chunkSizeWarningLimit: 700,
+    rolldownOptions: {
+      output: {
+        // Menos requisições no carregamento inicial: dependências agrupadas por momento de uso.
+        // Cada grupo leva junto as dependências ainda não capturadas, em ordem de prioridade: os
+        // contratos (zod/big.js) ficam no `core`, carregado pelo app, e o `mocks` (importado
+        // dinamicamente no boot) só contém o MSW e o backend simulado.
+        codeSplitting: {
+          groups: [
+            { name: 'react', priority: 40, test: nodeModules('react|react-dom|scheduler') },
+            { name: 'tanstack', priority: 40, test: nodeModules('@tanstack') },
+            {
+              name: 'core',
+              priority: 30,
+              test: /node_modules[\\/](axios|zod|sonner|tailwind-merge|clsx|class-variance-authority|big\.js)[\\/]|src[\\/](contracts[\\/]|lib[\\/]eth\.ts)/,
+            },
+            {
+              name: 'mocks',
+              priority: 10,
+              test: /node_modules[\\/](msw|@mswjs|@bundled-es-modules|@open-draft|headers-polyfill|outvariant|strict-event-emitter|path-to-regexp|rettime|is-node-process|until-async|set-cookie-parser|engine\.io-parser|socket\.io-parser)[\\/]|src[\\/]mocks[\\/]/,
+            },
+          ],
+        },
+      },
+    },
   },
 })

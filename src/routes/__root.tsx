@@ -43,7 +43,7 @@ function RootLayout() {
       <RouteAnnouncer />
       <SiteHeader />
       <MobileTopBar />
-      <main id="conteudo" tabIndex={-1} className="outline-none">
+      <main id="conteudo" tabIndex={-1} className="min-h-dvh outline-none">
         <Outlet />
       </main>
       <SiteFooter className={cn(meta.hideTabBar && 'hidden md:block')} />

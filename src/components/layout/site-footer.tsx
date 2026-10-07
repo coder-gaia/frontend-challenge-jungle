@@ -97,7 +97,7 @@ function Newsletter() {
 
 export function SiteFooter({ className }: { className?: string }) {
   return (
-    <footer className={cn('container-kurio mt-24 pb-28 md:pb-6', className)}>
+    <footer className={cn('defer-render container-kurio mt-24 pb-28 md:pb-6', className)}>
       <section aria-label="Serviços" className="bg-surface p-6 md:p-8">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1.35fr] lg:gap-0">
           {SERVICES.map((service) => (

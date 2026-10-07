@@ -30,6 +30,8 @@ interface NftImageProps {
  */
 export function NftImage({ image, sizes, className, imgClassName, priority, alt }: NftImageProps) {
   const [loaded, setLoaded] = useState(false)
+  // A imagem prioritária (LCP) aparece assim que decodifica: o fade dependeria de um re-render do React.
+  const visible = loaded || priority
   const focus = image.focus
   const style: CSSProperties | undefined = focus
     ? {
@@ -43,7 +45,7 @@ export function NftImage({ image, sizes, className, imgClassName, priority, alt 
     <div
       className={cn(
         'relative aspect-square overflow-hidden bg-surface-raised',
-        !loaded && 'shimmer',
+        !visible && 'shimmer',
         className,
       )}
     >
@@ -59,8 +61,9 @@ export function NftImage({ image, sizes, className, imgClassName, priority, alt 
         fetchPriority={priority ? 'high' : 'auto'}
         onLoad={() => setLoaded(true)}
         className={cn(
-          'size-full object-cover transition-opacity duration-300',
-          loaded ? 'opacity-100' : 'opacity-0',
+          'size-full object-cover',
+          !priority && 'transition-opacity duration-300',
+          visible ? 'opacity-100' : 'opacity-0',
           imgClassName,
         )}
         style={style}
