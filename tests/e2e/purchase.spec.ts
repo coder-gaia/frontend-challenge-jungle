@@ -3,6 +3,8 @@ import { listOrders, openReview } from './checkout-helpers'
 
 test.describe('Compra completa', () => {
   test('do catálogo ao recibo confirmado, com snapshot imutável', async ({ page, mock }) => {
+    // Fluxo longo (login → catálogo → checkout → recibo → explorador → carrinho).
+    test.slow()
     await login(page, 'ana')
     await page.goto('/')
     await page

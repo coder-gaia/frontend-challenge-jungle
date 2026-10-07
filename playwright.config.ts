@@ -12,10 +12,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: CI,
   retries: CI ? 1 : 0,
-  workers: CI ? 2 : undefined,
-  timeout: 45_000,
+  // Cada worker roda um Chromium com o app e o backend simulado: com 8 ou mais em paralelo numa
+  // máquina já ocupada, fluxos longos (checkout, reconexão) passam a estourar os tempos.
+  workers: CI ? 2 : 4,
+  timeout: 60_000,
   expect: {
-    timeout: 8_000,
+    timeout: 12_000,
     toHaveScreenshot: { maxDiffPixelRatio: 0.015, animations: 'disabled', caret: 'hide', scale: 'css' },
   },
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],

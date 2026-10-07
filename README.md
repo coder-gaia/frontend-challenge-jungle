@@ -29,22 +29,22 @@ visual (Playwright) e auditoria Lighthouse automatizada.
 - **Robustez:** checkout idempotente (`Idempotency-Key`), validação final da cotação no servidor,
   reconciliação REST ↔ Socket por versão, atualizações otimistas com rollback, cache isolado por
   usuário (sem vazamento na troca de conta) e retomada de fluxo após expiração da sessão.
-- **Qualidade:** TypeScript estrito, ESLint (com jsx-a11y), 52 testes Playwright rodando em desktop e
+- **Qualidade:** TypeScript estrito, ESLint (com jsx-a11y), 56 testes Playwright rodando em desktop e
   mobile (com regressão visual) e Lighthouse com Acessibilidade, Boas práticas e SEO entre 97 e 100.
 
 ## Stack
 
-| Área        | Tecnologia                                                                |
-| ----------- | ------------------------------------------------------------------------- |
-| Base        | React 19, TypeScript 6 (strict), Vite 8                                   |
-| Rotas       | TanStack Router (file-based, code splitting automático, loaders e guards) |
-| Dados       | TanStack Query 5, Axios, Zod 4 (contratos), big.js (valores em ETH)       |
-| Tempo real  | Socket.IO (`socket.io-client`)                                            |
-| UI          | Tailwind CSS 4, shadcn/ui (Radix), lucide-react, sonner                   |
-| Formulários | React Hook Form + Zod                                                     |
-| Mocks       | MSW 2 (REST via Service Worker) + `@mswjs/socket.io-binding` (Socket.IO)  |
-| Testes      | Playwright (E2E + regressão visual, desktop e mobile)                     |
-| Performance | Lighthouse 13 (script próprio com medianas)                               |
+| Área        | Tecnologia                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------ |
+| Base        | React 19, TypeScript 6 (strict), Vite 8                                                    |
+| Rotas       | TanStack Router (file-based, code splitting automático, loaders e guards)                  |
+| Dados       | TanStack Query 5, Axios, Zod 4 (contratos), big.js (valores em ETH)                        |
+| Tempo real  | Socket.IO (`socket.io-client`)                                                             |
+| UI          | Tailwind CSS 4, shadcn/ui (Radix), lucide-react, sonner                                    |
+| Formulários | React Hook Form + Zod                                                                      |
+| Mocks       | MSW 2 (Service Worker ou interceptação em página) + `@mswjs/socket.io-binding` (Socket.IO) |
+| Testes      | Playwright (E2E + regressão visual, desktop e mobile)                                      |
+| Performance | Lighthouse 13 (script próprio com medianas)                                                |
 
 ## Como rodar
 
@@ -73,6 +73,11 @@ reinicie tudo com `?mockReset=1` ou pelo Chaos Lab.
   outra porta: `npm run dev -- --port 5174`.
 - **Dados ou estado estranhos no app:** abra `http://localhost:5173/?mockReset=1` para restaurar o
   banco simulado, as sessões e o cenário padrão.
+- **Simuladores mobile em iframe e previews de editor:** nesses contextos o Service Worker não
+  intercepta a página, então o backend simulado passa sozinho para o modo em página (o Chaos Lab
+  mostra "Interceptação: Em página"). Tudo funciona, mas as chamadas não aparecem no painel de rede.
+  Para inspecioná-las no tamanho mobile, use o modo responsivo do DevTools (`F12` e depois
+  `Ctrl+Shift+M`).
 
 ### Variáveis de ambiente
 
@@ -184,12 +189,15 @@ npm run test:e2e
 npm run test:report               # relatório HTML com traces, vídeos e screenshots das falhas
 ```
 
-- Dois projetos: **desktop** (1440 × 900) e **mobile** (Pixel 7). Os mesmos 52 testes rodam nos
+- Dois projetos: **desktop** (1440 × 900) e **mobile** (Pixel 7). Os mesmos 56 testes rodam nos
   dois. 8 deles (navegação por teclado e larguras controladas pelo próprio teste) só fazem sentido no
   desktop e são pulados no mobile.
 - Os testes usam o build de produção (`npm run build && npm run preview`) e controlam o backend
   simulado pela fixture `mock` (cenários, eventos de mercado, queda do socket, expiração de sessão).
   Os eventos chegam ao app pelo servidor Socket.IO simulado, sem atalhos no cache.
+- Rodam com 4 workers locais (2 no CI), porque cada worker é um Chromium com o app e o backend
+  simulado. `E2E_IN_PAGE=1 npm run test:e2e` roda a suíte inteira com o backend simulado no modo em
+  página (sem Service Worker).
 - Em caso de falha ficam guardados trace, vídeo e screenshot (`test-results/`). Para abrir um trace:
   `npx playwright show-trace test-results/<teste>/trace.zip`.
 - Regressão visual: início, detalhe, carrinho e pagamento, em desktop e mobile. As baselines ficam em
@@ -209,6 +217,7 @@ npm run test:report               # relatório HTML com traces, vídeos e screen
 | `account.spec.ts`             | Perfil com erros do servidor, avatar redimensionado, troca de senha e carteiras com validação e conflito                                                |
 | `a11y-and-states.spec.ts`     | Skip link, foco em diálogos, busca e login por teclado, regiões vivas, skeletons, 5xx com retry e offline                                               |
 | `responsive.spec.ts`          | Ausência de overflow horizontal das telas principais em 390, 768 e 1440 px                                                                              |
+| `mock-transport.spec.ts`      | Backend simulado sem Service Worker: iframe de outra origem, navegador sem a API e página fora do controle do worker                                    |
 | `visual/pages.visual.spec.ts` | Regressão visual                                                                                                                                        |
 
 ## Lighthouse

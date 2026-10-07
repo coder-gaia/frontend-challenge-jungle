@@ -66,6 +66,8 @@ test.describe('Tempo real (Socket.IO via MSW)', () => {
     page,
     mock,
   }) => {
+    // Inclui a janela de recusa do servidor (6 s) e o backoff de reconexão do cliente.
+    test.slow()
     await login(page, 'ana')
     await mock.configure({ payment: { outcome: 'approve', delayMs: 4000 } })
     await addToCart(page, 'golden-signal-160')
@@ -85,8 +87,10 @@ test.describe('Tempo real (Socket.IO via MSW)', () => {
   })
 
   test('refresh durante pedido pendente recupera o estado sem criar outra compra', async ({ page, mock }) => {
+    test.slow()
     await login(page, 'ana')
-    await mock.configure({ payment: { outcome: 'approve', delayMs: 9000 } })
+    // O pagamento só é resolvido quando o teste mandar: o pedido segue pendente durante os refreshes.
+    await mock.configure({ payment: { outcome: 'approve', delayMs: 10 * 60_000 } })
     await addToCart(page, 'golden-signal-160')
     await visible(page.getByTestId('checkout-button')).click()
     const dialog = await openReview(page)
@@ -100,11 +104,15 @@ test.describe('Tempo real (Socket.IO via MSW)', () => {
     await expect(page.getByTestId('pending-order-notice')).toBeVisible()
     await page.getByTestId('pending-order-notice').getByRole('link', { name: 'Ver pedido' }).click()
     await expect(page).toHaveURL(orderUrl)
+    await expect(page.getByTestId('order-pending')).toBeVisible()
+    await mock.resolvePendingOrders()
     await expect(page.getByTestId('order-confirmed')).toBeVisible({ timeout: 15_000 })
     expect(await listOrders(page)).toHaveLength(1)
   })
 
   test('evento de pedido de outra sessão não chega ao novo usuário', async ({ page, mock }) => {
+    // Checkout, logout e novo login antes da resolução do pagamento.
+    test.slow()
     await login(page, 'ana')
     await mock.configure({ payment: { outcome: 'approve', delayMs: 3000 } })
     await addToCart(page, 'golden-signal-160')

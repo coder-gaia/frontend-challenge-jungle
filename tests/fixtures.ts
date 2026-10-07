@@ -33,9 +33,17 @@ interface MockOptions {
  * - `mock`: controle do backend simulado na página (`window.__KURIO_MOCK__`). Eventos disparados por
  *   ele trafegam pelo servidor Socket.IO simulado e chegam ao app pelo `socket.io-client`.
  */
+/** `E2E_IN_PAGE=1` roda a suíte com o backend simulado no modo em página (sem Service Worker). */
+const FORCE_IN_PAGE = process.env.E2E_IN_PAGE === '1'
+
 export const test = base.extend<{ mockOptions: MockOptions; mock: MockController }>({
   mockOptions: [{ scenario: 'default', latency: 'instant' }, { option: true }],
   page: async ({ page, mockOptions }, use) => {
+    if (FORCE_IN_PAGE) {
+      await page.addInitScript(() => {
+        delete (Navigator.prototype as { serviceWorker?: unknown }).serviceWorker
+      })
+    }
     await page.addInitScript((options) => {
       // Só na primeira carga do contexto: recargas preservam o estado (persistência).
       if (!sessionStorage.getItem('__e2e_init')) {
@@ -59,6 +67,20 @@ export class MockController {
     await this.page.waitForFunction(() => window.__KURIO_MOCK__?.ready === true)
   }
 
+  /**
+   * Eventos só chegam a clientes conectados: antes de disparar um, espera o socket da página se
+   * registrar no servidor simulado (exceto quando o tempo real está desligado ou recusando conexões
+   * de propósito). Sem isso, numa máquina carregada o evento sai antes da conexão e se perde.
+   */
+  private async realtimeReady() {
+    await this.ready()
+    await this.page.waitForFunction(() => {
+      const state = window.__KURIO_MOCK__!.getState()
+      const { available } = state.config.realtime as { available: boolean }
+      return !available || !state.realtime.accepting || state.realtime.connections > 0
+    })
+  }
+
   async setScenario(id: Scenario) {
     await this.ready()
     await this.page.evaluate((scenario) => window.__KURIO_MOCK__!.setScenario(scenario), id)
@@ -70,7 +92,7 @@ export class MockController {
   }
 
   async changePrice(nftId: string, percent: number, editionId?: string) {
-    await this.ready()
+    await this.realtimeReady()
     return this.page.evaluate(
       ([id, pct, edition]) =>
         window.__KURIO_MOCK__!.market.changePrice(id as string, pct as number, edition as string | undefined),
@@ -79,7 +101,7 @@ export class MockController {
   }
 
   async setAvailability(nftId: string, available: number, editionId?: string) {
-    await this.ready()
+    await this.realtimeReady()
     return this.page.evaluate(
       ([id, qty, edition]) =>
         window.__KURIO_MOCK__!.market.setAvailability(
@@ -92,11 +114,22 @@ export class MockController {
   }
 
   async replayLastEvent() {
+    await this.realtimeReady()
     return this.page.evaluate(() => window.__KURIO_MOCK__!.realtime.replayLast())
   }
 
   async emitStaleEvent() {
+    await this.realtimeReady()
     return this.page.evaluate(() => window.__KURIO_MOCK__!.realtime.emitStale())
+  }
+
+  /** Resolve agora os pedidos pendentes, sem depender do atraso simulado do pagamento. */
+  async resolvePendingOrders() {
+    await this.ready()
+    await this.page.evaluate(() => {
+      const mock = window.__KURIO_MOCK__!
+      for (const order of mock.getState().pendingOrders) mock.orders.resolveNow(order.id)
+    })
   }
 
   async dropRealtime(refuseForMs = 0) {
