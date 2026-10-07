@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { AddCartItemRequest, Cart } from '@/contracts'
 import { queryKeys } from '@/api/query-keys'
 import { sessionStore } from '@/features/auth/session-store'
 import { getGuestCartId } from '@/lib/guest-cart'
@@ -22,3 +23,21 @@ export function useCart() {
   const owner = useCartOwner()
   return useQuery(cartQueryOptions(owner))
 }
+
+/**
+ * As mutations do carrinho devolvem o carrinho recalculado pelo servidor:
+ * o cache é atualizado com a resposta e as cotações são invalidadas.
+ */
+function useCartMutation<TVariables>(mutationFn: (variables: TVariables) => Promise<Cart>) {
+  const queryClient = useQueryClient()
+  const owner = useCartOwner()
+  return useMutation({
+    mutationFn,
+    onSuccess: (cart) => {
+      queryClient.setQueryData(queryKeys.cart.byOwner(owner), cart)
+      void queryClient.invalidateQueries({ queryKey: queryKeys.quote.all })
+    },
+  })
+}
+
+export const useAddToCart = () => useCartMutation((body: AddCartItemRequest) => cartApi.add(body))
