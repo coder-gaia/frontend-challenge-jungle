@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { CheckoutPage } from '@/features/checkout/checkout-page'
 
 export const Route = createFileRoute('/_auth/pagamento')({
   head: () => ({ meta: [{ title: 'Pagamento · KURIO' }] }),
@@ -6,7 +7,8 @@ export const Route = createFileRoute('/_auth/pagamento')({
     nav: 'market',
     mobileHeader: 'back',
     mobileTitle: 'Pagamento com carteira',
+    mobileBackTo: '/carrinho',
     hideTabBar: true,
   },
-  component: () => <div className="container-kurio py-16">Pagamento</div>,
+  component: CheckoutPage,
 })

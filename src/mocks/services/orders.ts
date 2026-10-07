@@ -131,7 +131,7 @@ export async function createOrder(
         networkFee: quote.networkFee,
         total: quote.total,
       },
-      transaction: { hash, explorerUrl: `/tx/${hash}` },
+      transaction: { hash, explorerUrl: `/transacao/${hash}` },
       failureReason: null,
       createdAt: new Date(now).toISOString(),
       updatedAt: new Date(now).toISOString(),

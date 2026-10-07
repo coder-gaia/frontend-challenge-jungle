@@ -11,6 +11,7 @@ import { ErrorState, NotFoundState } from '@/components/page-states'
 import { Toaster } from '@/components/ui/sonner'
 import { ChaosLabLauncher } from '@/features/devtools/chaos-lab-launcher'
 import { SessionLifecycle } from '@/features/auth/session-lifecycle'
+import { PendingOrderNotice } from '@/features/orders/pending-order-notice'
 import { cn } from '@/lib/utils'
 
 export interface RouterContext {
@@ -48,6 +49,7 @@ function RootLayout() {
       <SiteFooter className={cn(meta.hideTabBar && 'hidden md:block')} />
       <MobileTabBar />
       <SearchHost />
+      <PendingOrderNotice />
       <Toaster position="top-center" closeButton />
       <LiveAnnouncer />
       <ChaosLabLauncher />

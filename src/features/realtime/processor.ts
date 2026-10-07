@@ -101,14 +101,20 @@ export function createEventProcessor(deps: {
     void queryClient.invalidateQueries({ queryKey: queryKeys.nfts.lists, refetchType: 'none' })
 
     // Carrinho/cotação: o servidor recalcula totais e sinaliza a mudança de preço/estoque.
-    const inCart = queryClient
+    const cartLines = queryClient
       .getQueriesData<Cart>({ queryKey: queryKeys.cart.all })
-      .some(([, cart]) => cart?.lines.some((line) => line.nftId === nftId))
+      .flatMap(([, cart]) => cart?.lines.filter((line) => line.nftId === nftId) ?? [])
+    const inCart = cartLines.length > 0
     if (inCart) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.cart.all })
       void queryClient.invalidateQueries({ queryKey: queryKeys.quote.all })
     }
-    return inCart
+    // Só alerta quando a mudança afeta o carrinho: preço novo ou estoque abaixo da quantidade escolhida.
+    if (event.data.reason === 'price_change') return inCart
+    return cartLines.some((line) => {
+      const edition = event.data.editions.find((e) => e.id === line.editionId)
+      return edition ? edition.available < line.quantity : false
+    })
   }
 
   function applyOrder(event: OrderUpdatedEvent, userId: string) {
