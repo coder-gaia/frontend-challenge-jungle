@@ -89,11 +89,16 @@ export function DetailTabs({
       onValueChange={(value) => onTabChange(value as typeof tab)}
       className="scroll-mt-6 gap-3"
     >
-      <TabsList className="h-auto w-full justify-start gap-8 rounded-none border-b border-primary/30 bg-transparent p-0">
+      <TabsList className="relative h-auto w-full max-w-full scrollbar-none justify-start gap-6 overflow-x-auto rounded-none border-b border-primary/30 bg-transparent p-0 md:gap-8">
         {(
           [
             ['detalhes', 'Detalhes do NFT'],
-            ['avaliacoes', `Avaliações de colecionadores (${nft.rating.count})`],
+            [
+              'avaliacoes',
+              <>
+                Avaliações<span className="hidden sm:inline"> de colecionadores</span> ({nft.rating.count})
+              </>,
+            ],
           ] as const
         ).map(([value, label]) => (
           <TabsTrigger

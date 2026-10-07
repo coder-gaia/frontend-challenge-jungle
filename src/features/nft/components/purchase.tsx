@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { Heart, Loader2, ShoppingCart } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,6 +21,8 @@ export function EditionPicker({
   selected: Edition
   onSelect: (param: EditionParam) => void
 }) {
+  // Nome único por instância: as variantes mobile e desktop coexistem no DOM.
+  const group = useId()
   return (
     <fieldset className="flex flex-col gap-3">
       <legend className="mb-3 text-15 leading-4 font-bold">Edição:</legend>
@@ -42,7 +44,7 @@ export function EditionPicker({
             >
               <input
                 type="radio"
-                name="edition"
+                name={group}
                 value={edition.id}
                 checked={checked}
                 disabled={soldOut && !checked}

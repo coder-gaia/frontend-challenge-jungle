@@ -62,6 +62,7 @@ function MobileFavorite({ nft }: { nft: Parameters<typeof FavoriteButton>[0]['nf
       aria-pressed={favorite}
       aria-label={favorite ? `Remover ${nft.name} da lista de interesse` : `Favoritar ${nft.name}`}
       className="flex size-9 cursor-pointer items-center justify-center rounded-full border border-border bg-surface-raised text-text-accent"
+      data-testid="detail-favorite"
     >
       <Heart className="size-5" fill={favorite ? 'currentColor' : 'none'} aria-hidden="true" />
     </button>

@@ -29,7 +29,29 @@ type CreateResult =
  * - Mesma chave + payload diferente → 409 IDEMPOTENCY_CONFLICT.
  * - Cotação desatualizada → 409 QUOTE_STALE com a nova cotação (exige nova confirmação).
  */
-export async function createOrder(
+/**
+ * Requisições concorrentes com a mesma chave são serializadas: a segunda espera a primeira
+ * registrar a idempotência e então recebe o mesmo pedido (como um lock no banco de um backend real).
+ */
+const inflight = new Map<string, Promise<unknown>>()
+
+export function createOrder(
+  auth: AuthContext,
+  key: string,
+  payload: CreateOrderRequest,
+): Promise<CreateResult> {
+  const lockKey = `${auth.user.id}:${key}`
+  const previous = inflight.get(lockKey) ?? Promise.resolve()
+  const run = previous.then(() => createOrderUnlocked(auth, key, payload))
+  const settled = run.catch(() => undefined)
+  inflight.set(lockKey, settled)
+  void settled.then(() => {
+    if (inflight.get(lockKey) === settled) inflight.delete(lockKey)
+  })
+  return run
+}
+
+async function createOrderUnlocked(
   auth: AuthContext,
   key: string,
   payload: CreateOrderRequest,

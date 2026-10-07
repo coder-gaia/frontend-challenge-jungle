@@ -50,7 +50,7 @@ function RootLayout() {
       <MobileTabBar />
       <SearchHost />
       <PendingOrderNotice />
-      <Toaster position="top-center" closeButton />
+      <Toaster position="top-center" closeButton mobileOffset={{ top: 76 }} />
       <LiveAnnouncer />
       <ChaosLabLauncher />
     </>

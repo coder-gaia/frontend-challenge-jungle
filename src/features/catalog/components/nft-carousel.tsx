@@ -55,7 +55,7 @@ export function NftCarousel({
                 Math.round((el.scrollLeft / Math.max(1, el.scrollWidth - el.clientWidth)) * (pages - 1)),
               )
             }}
-            className="flex snap-x snap-mandatory scrollbar-none gap-4 overflow-x-auto md:gap-[26px]"
+            className="relative flex snap-x snap-mandatory scrollbar-none gap-4 overflow-x-auto md:gap-[26px]"
           >
             {items.map((nft) => (
               <li key={nft.id} className="w-[160px] shrink-0 snap-start md:w-[219px]">

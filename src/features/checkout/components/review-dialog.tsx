@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { OrderSummary } from '@/features/cart/components/order-summary'
 import { formatEth } from '@/lib/eth'
+import { useFocusReturn } from '@/lib/use-focus-return'
 
 /**
  * Revisão antes do envio. Se a cotação mudar enquanto o diálogo está aberto (tempo real) ou o
@@ -48,11 +49,13 @@ export function ReviewDialog({
   onAcceptChanges: () => void
   onConfirm: () => void
 }) {
+  const returnFocus = useFocusReturn(open)
   return (
     <Dialog open={open} onOpenChange={(value) => !submitting && onOpenChange(value)}>
       <DialogContent
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto border-border-soft bg-surface sm:max-w-[520px]"
         data-testid="review-dialog"
+        onCloseAutoFocus={returnFocus}
       >
         <DialogHeader>
           <DialogTitle className="text-xl">Revise seu pedido</DialogTitle>

@@ -104,7 +104,7 @@ export const SCENARIOS: Record<
         {
           id: 'catalog-503',
           method: 'GET',
-          path: '/nfts*',
+          path: '/nfts',
           status: 503,
           code: 'SERVICE_UNAVAILABLE',
           remaining: 4,

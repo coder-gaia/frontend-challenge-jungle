@@ -60,7 +60,7 @@ export function usePlaceOrder(userId: string) {
           if (!transient || retry >= MAX_RETRIES) throw apiError
           // Retry seguro: mesma chave de idempotência.
           setRetrying(retry + 1)
-          await sleep(700 * (retry + 1))
+          await sleep(1500 * (retry + 1))
         }
       }
     },

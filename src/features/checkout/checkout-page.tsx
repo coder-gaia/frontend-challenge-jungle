@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
+import { useIsMutating, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ShieldCheck, ShoppingCart, Wallet as WalletIcon } from 'lucide-react'
 import type { Cart, Profile, Wallet } from '@/contracts'
@@ -64,6 +64,13 @@ export function CheckoutPage() {
   const cartQuery = useCart()
   const profileQuery = useProfile()
   const walletsQuery = useWallets()
+  // Enquanto um pedido está em envio, a confirmação pode esvaziar o carrinho (order.updated) antes da
+  // resposta chegar: a tela mantém o snapshot do carrinho em vez de trocar para o estado vazio.
+  const placing = useIsMutating({ mutationKey: ['place-order'] }) > 0
+  const [snapshot, setSnapshot] = useState<Cart | null>(null)
+  if (cartQuery.data && cartQuery.data.lines.length > 0 && cartQuery.data !== snapshot)
+    setSnapshot(cartQuery.data)
+  const cart = placing && snapshot ? snapshot : cartQuery.data
 
   const failed = [cartQuery, profileQuery, walletsQuery].find((q) => q.isError && !q.data)
   let content: React.ReactNode
@@ -75,9 +82,9 @@ export function CheckoutPage() {
         onRetry={() => void failed.refetch()}
       />
     )
-  } else if (!user || !cartQuery.data || !profileQuery.data || !walletsQuery.data) {
+  } else if (!user || !cart || !profileQuery.data || !walletsQuery.data) {
     content = <CheckoutSkeleton />
-  } else if (cartQuery.data.lines.length === 0) {
+  } else if (cart.lines.length === 0) {
     content = (
       <EmptyState
         icon={<ShoppingCart className="size-6" />}
@@ -109,7 +116,7 @@ export function CheckoutPage() {
     content = (
       <CheckoutForm
         userId={user.id}
-        cart={cartQuery.data}
+        cart={cart}
         profile={profileQuery.data}
         wallets={walletsQuery.data.wallets}
       />
@@ -261,8 +268,11 @@ function CheckoutForm({
       announce('Revise os campos destacados no formulário.', 'assertive'),
     )(event)
 
+  // Trava síncrona: dois cliques antes do re-render não disparam duas mutations.
+  const submittingRef = useRef(false)
   const confirm = async () => {
-    if (!quote) return
+    if (!quote || submittingRef.current) return
+    submittingRef.current = true
     const values = form.getValues()
     setOrderError(null)
     try {
@@ -313,6 +323,8 @@ function CheckoutForm({
         setOrderError(message)
         announce(message, 'assertive')
       }
+    } finally {
+      submittingRef.current = false
     }
   }
 

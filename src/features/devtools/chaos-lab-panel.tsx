@@ -26,6 +26,7 @@ import type { EventOutcome } from '@/features/realtime/event-log'
 import { realtimeLog } from '@/features/realtime/event-log'
 import { useRealtimeStatus } from '@/features/realtime/realtime-provider'
 import { removeStorage, STORAGE_KEYS } from '@/lib/storage'
+import { useFocusReturn } from '@/lib/use-focus-return'
 import { useIsDesktop } from '@/lib/use-media-query'
 import { cn } from '@/lib/utils'
 import { mockApi, type MockState } from './mock-api'
@@ -525,6 +526,7 @@ export default function ChaosLabPanel({
 }) {
   const desktop = useIsDesktop()
   const { data: state } = useMockState(open)
+  const returnFocus = useFocusReturn(open)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -534,6 +536,7 @@ export default function ChaosLabPanel({
           desktop ? 'w-[440px] sm:max-w-[440px]' : 'max-h-[88dvh] rounded-t-3xl',
         )}
         data-testid="chaos-lab"
+        onCloseAutoFocus={returnFocus}
       >
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2">

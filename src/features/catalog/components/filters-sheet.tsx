@@ -7,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { useFocusReturn } from '@/lib/use-focus-return'
 import type { CatalogSearch } from '../search'
 import { SortSelect } from './catalog-toolbar'
 import { CatalogFilters, type FacetData } from './filters'
@@ -27,9 +28,14 @@ export default function FiltersSheet({
   total?: number
   onChange: (patch: Partial<CatalogSearch>, options?: { replace?: boolean }) => void
 }) {
+  const returnFocus = useFocusReturn(open)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="max-h-[88dvh] rounded-t-[28px] border-border-soft bg-surface">
+      <SheetContent
+        side="bottom"
+        className="max-h-[88dvh] rounded-t-[28px] border-border-soft bg-surface"
+        onCloseAutoFocus={returnFocus}
+      >
         <SheetHeader>
           <SheetTitle className="text-lg">Filtros</SheetTitle>
           <SheetDescription>

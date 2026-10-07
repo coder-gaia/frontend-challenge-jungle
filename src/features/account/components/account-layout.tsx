@@ -24,7 +24,7 @@ export function AccountLayout({ children }: { children: ReactNode }) {
       <nav aria-label="Minha conta" className="shrink-0 md:w-[310px]">
         <div className="bg-surface md:pb-0">
           <h2 className="hidden px-2.5 pt-6 pb-3 text-lg leading-4 font-bold md:block">Meu perfil</h2>
-          <ul className="flex scrollbar-none gap-1 overflow-x-auto p-2 md:flex-col md:gap-0 md:p-0">
+          <ul className="relative flex scrollbar-none gap-1 overflow-x-auto p-2 md:flex-col md:gap-0 md:p-0">
             {ITEMS.map(({ label, to, icon: Icon, ...item }) => {
               const secao = 'secao' in item ? item.secao : undefined
               const href = secao ? `/em-breve/${secao}` : to
@@ -36,7 +36,7 @@ export function AccountLayout({ children }: { children: ReactNode }) {
                     params={secao ? { secao } : undefined}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'flex h-11 items-center gap-3 rounded-md border-l-4 border-transparent px-3 text-15 whitespace-nowrap text-text-accent transition-colors hover:bg-surface-raised md:rounded-none md:px-3.5',
+                      'relative flex h-11 items-center gap-3 rounded-md border-l-4 border-transparent px-3 text-15 whitespace-nowrap text-text-accent transition-colors hover:bg-surface-raised md:rounded-none md:px-3.5',
                       active && 'border-primary bg-surface-raised md:bg-transparent',
                     )}
                   >

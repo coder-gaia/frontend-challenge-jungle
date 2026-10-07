@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { FlaskConical } from 'lucide-react'
-import { useRouteMeta } from '@/app/route-meta'
 import { useRealtimeStatus } from '@/features/realtime/realtime-provider'
 import { cn } from '@/lib/utils'
 
@@ -17,7 +16,6 @@ export function ChaosLabLauncher() {
   const [open, setOpen] = useState(false)
   const [requested, setRequested] = useState(false)
   const { status, events } = useRealtimeStatus()
-  const meta = useRouteMeta()
 
   useEffect(() => {
     if (!ENABLED) return
@@ -46,13 +44,15 @@ export function ChaosLabLauncher() {
         aria-label="Abrir Chaos Lab (Alt+Shift+C)"
         aria-keyshortcuts="Alt+Shift+C"
         className={cn(
-          'fixed left-4 z-40 flex h-10 cursor-pointer items-center gap-2 rounded-full border border-primary/60 bg-surface/95 px-3 text-xs font-bold text-text-accent shadow-glow backdrop-blur transition hover:bg-surface-raised md:bottom-6',
-          meta.hideTabBar ? 'bottom-44' : 'bottom-24',
+          'fixed z-40 flex cursor-pointer items-center gap-2 border border-primary/60 bg-surface/95 text-xs font-bold text-text-accent shadow-glow backdrop-blur transition hover:bg-surface-raised',
+          // Mobile: aba presa à borda esquerda (não cobre barras fixas). Desktop: pílula no canto inferior.
+          'top-1/2 left-0 h-12 -translate-y-1/2 rounded-r-full border-l-0 px-2',
+          'md:top-auto md:bottom-6 md:left-4 md:h-10 md:translate-y-0 md:rounded-full md:border-l md:px-3',
         )}
         data-testid="chaos-lab-launcher"
       >
         <FlaskConical className="size-4" aria-hidden="true" />
-        <span className="hidden sm:inline">Chaos Lab</span>
+        <span className="hidden md:inline">Chaos Lab</span>
         <span
           aria-hidden="true"
           className={cn(

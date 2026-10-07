@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { useFocusReturn } from '@/lib/use-focus-return'
 import { KurioWordmark } from './kurio-wordmark'
 import { RealtimeIndicator } from './realtime-indicator'
 import { NAV_ITEMS } from './site-header'
@@ -11,9 +12,10 @@ export default function NavSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const returnFocus = useFocusReturn(open)
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-72 border-border-soft bg-surface">
+      <SheetContent side="left" className="w-72 border-border-soft bg-surface" onCloseAutoFocus={returnFocus}>
         <SheetHeader>
           <SheetTitle>
             <KurioWordmark />
